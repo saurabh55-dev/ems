@@ -3,7 +3,6 @@ package ems
 import grails.boot.GrailsApp
 import grails.boot.config.GrailsAutoConfiguration
 import groovy.transform.CompileStatic
-import grails.plugins.metadata.*
 import org.springframework.scheduling.annotation.EnableScheduling
 
 @CompileStatic

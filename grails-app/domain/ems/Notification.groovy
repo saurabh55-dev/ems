@@ -1,41 +1,26 @@
 package ems
 
 class Notification {
-
     String message
-    String type = 'TASK_OVERDUE' // TASK_OVERDUE, TASK_REMINDER, etc.
+    String type // 'TASK_OVERDUE', 'TASK_ESCALATION'
+    Date dateCreated
     boolean isRead = false
-    Date sentDate = new Date()
-    Date readDate
-
     Employee recipient
-    Employee sender // System generated notifications can have null sender
-    Task relatedTask
-
-    // For escalation tracking
-    int escalationLevel = 1 // 1 = first notification, 2 = escalated to supervisor's supervisor, etc.
+    Task task
+    Employee escalatedFrom // The employee who was originally responsible
 
     static constraints = {
-        message nullable: false, blank: false, maxSize: 1000
-        type nullable: false
-        isRead nullable: false
-        sentDate nullable: false
-        readDate nullable: true
+        message nullable: false, maxSize: 1000, blank: false
+        type nullable: false, inList: ['TASK_OVERDUE', 'TASK_ESCALATION']
         recipient nullable: false
-        sender nullable: true
-        relatedTask nullable: true
-        escalationLevel nullable: false, min: 1
+        task nullable: true
+        escalatedFrom nullable: true
+        dateCreated nullable: true
     }
 
     static mapping = {
         message type: 'text'
-        sort sentDate: 'desc'
-    }
-
-    def markAsRead() {
-        isRead = true
-        readDate = new Date()
-        save(flush: true)
+        sort dateCreated: 'desc'
     }
 
     String toString() {

@@ -9,6 +9,10 @@ dataSource:
   password: admin
   pooled: true
   jmxExport: true
+spring:
+  task:
+    scheduling:
+      enabled: true
 environments:
   development:
     dataSource:

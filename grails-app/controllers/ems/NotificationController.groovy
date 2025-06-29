@@ -1,93 +1,88 @@
 package ems
 
 import grails.plugin.springsecurity.SpringSecurityService
+import grails.plugin.springsecurity.annotation.Secured
 import grails.validation.ValidationException
 import static org.springframework.http.HttpStatus.*
-import grails.converters.JSON
 
+@Secured(['ROLE_DIRECTOR', 'ROLE_MANAGER'])
 class NotificationController {
 
     SpringSecurityService springSecurityService
-    NotificationManagerService notificationManagerService
     NotificationService notificationService
+    NotificationManagerService notificationManagerService
 
     static allowedMethods = [save: "POST", update: "PUT", delete: "DELETE"]
 
     def index(Integer max) {
-        def currentUser = springSecurityService.getCurrentUser()
-        def currentEmployee = currentUser?.employee
+        params.max = Math.min(max ?: 20, 100)
+
+        // Get current user's employee record
+        def currentUser = springSecurityService.currentUser
+        def currentEmployee = Employee.findById(currentUser.employee?.id)
 
         if (!currentEmployee) {
-            flash.error = "Employee profile not found"
-            redirect(uri: '/')
+            flash.error = "Employee record not found"
+            redirect(controller: 'home', action: 'index')
             return
         }
 
-        def notifications = Notification.findAllByRecipient(currentEmployee, [sort: 'sentDate', order: 'desc'])
+        // Filter notifications specifically for the current employee
+        def notifications = Notification.createCriteria().list(params) {
+            eq('recipient', currentEmployee)
+            order('dateCreated', 'desc')
+        }
+
+        def notificationCount = Notification.countByRecipient(currentEmployee)
         def unreadCount = Notification.countByRecipientAndIsRead(currentEmployee, false)
 
-        [notifications: notifications, unreadCount: unreadCount, currentEmployee: currentEmployee]
-    }
-
-    def markAsRead(Long id) {
-        def notification = Notification.get(id)
-        def currentUser = springSecurityService.getCurrentUser()
-        def currentEmployee = currentUser?.employee
-
-        if (notification && notification.recipient == currentEmployee) {
-            notification.markAsRead()
-            flash.message = "Notification marked as read"
-        } else {
-            flash.error = "Notification not found or access denied"
-        }
-
-        redirect(action: 'index')
-    }
-
-    def markAllAsRead() {
-        def currentUser = springSecurityService.getCurrentUser()
-        def currentEmployee = currentUser?.employee
-
-        if (currentEmployee) {
-            def unreadNotifications = Notification.findAllByRecipientAndIsRead(currentEmployee, false)
-            unreadNotifications.each { notification ->
-                notification.markAsRead()
-            }
-            flash.message = "All notifications marked as read"
-        }
-
-        redirect(action: 'index')
-    }
-
-    def getUnreadCount() {
-        def currentUser = springSecurityService.getCurrentUser()
-        def currentEmployee = currentUser?.employee
-
-        if (currentEmployee) {
-            def count = Notification.countByRecipientAndIsRead(currentEmployee, false)
-            render([count: count] as JSON)
-        } else {
-            render([count: 0] as JSON)
-        }
-    }
-
-    def delete(Long id) {
-        def notification = Notification.get(id)
-        def currentUser = springSecurityService.getCurrentUser()
-        def currentEmployee = currentUser?.employee
-
-        if (notification && notification.recipient == currentEmployee) {
-            notification.delete(flush: true)
-            flash.message = "Notification deleted"
-        } else {
-            flash.error = "Notification not found or access denied"
-        }
-
-        redirect(action: 'index')
+        respond notifications, model: [
+                notificationCount: notificationCount,
+                unreadCount: unreadCount,
+                currentEmployee: currentEmployee
+        ]
     }
 
     def show(Long id) {
-        respond notificationService.get(id)
+        if (!id) {
+            flash.error = "Notification ID is required"
+            redirect(action: 'index')
+            return
+        }
+
+        def notification = Notification.get(id)
+        if (!notification) {
+            flash.error = "Notification not found"
+            redirect(action: 'index')
+            return
+        }
+
+        // Check if current user is the recipient
+        def currentUser = springSecurityService.currentUser
+        if (!currentUser || !currentUser.employee) {
+            flash.error = "User or employee record not found"
+            redirect(action: 'index')
+            return
+        }
+        def currentEmployee = Employee.get(currentUser.employee.id)
+
+        if (!currentEmployee || notification.recipient != currentEmployee) {
+            flash.error = "Access denied"
+            redirect(action: 'index')
+            return
+        }
+
+        // Mark as read when viewed
+        if (!notification.isRead) {
+            try {
+                notificationManagerService.markAsRead(id)
+            } catch (Exception e) {
+                log.error("Error marking notification as read", e)
+                // Don't fail the show action if marking as read fails
+            }
+        }
+
+        respond notification
     }
 
     def create() {
@@ -142,6 +137,21 @@ class NotificationController {
         }
     }
 
+    def delete(Long id) {
+        if (id == null) {
+            notFound()
+            return
+        }
+        notificationService.delete(id)
+
+        request.withFormat {
+            form multipartForm {
+                flash.message = message(code: 'default.deleted.message', args: [message(code: 'notification.label', default: 'Notification'), id])
+                redirect action:"index", method:"GET"
+            }
+            '*'{ render status: NO_CONTENT }
+        }
+    }
     protected void notFound() {
         request.withFormat {
             form multipartForm {

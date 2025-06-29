@@ -2,15 +2,20 @@ package ems
 
 import grails.gorm.transactions.Transactional
 
+import java.text.SimpleDateFormat
+
 class BootStrap {
 
     EmployeeManagerService employeeManagerService
+    NotificationManagerService notificationManagerService
 
     def init = { servletContext ->
         createRoles()
         createBranch()
         createDefaultEmployees()
         createSampleTasks()
+        createTestNotifications()
+        notificationManagerService.toString()
     }
 
     @Transactional
@@ -27,6 +32,7 @@ class BootStrap {
     void createBranch() {
         if (!Branch.count()) {
             new Branch(name: 'KTM').save(flush: true)
+            new Branch(name: 'NPJ').save(flush: true)
         }
     }
 
@@ -92,6 +98,7 @@ class BootStrap {
         cal.add(Calendar.DAY_OF_MONTH, days)
         return cal.getTime()
     }
+
     @Transactional
     void createSampleTasks() {
         if (!Task.count()) {
@@ -124,6 +131,48 @@ class BootStrap {
                         assignedBy: manager
                 )
                 currentTask.save(flush: true)
+
+                // Create another overdue task for more testing
+                def anotherOverdueTask = new Task(
+                        title: 'Update System Documentation',
+                        description: 'Update the system documentation with recent changes',
+                        dateCreated: subtractDays(new Date(), 15),
+                        deadline: subtractDays(new Date(), 5), // 5 days overdue
+                        status: 'ASSIGNED',
+                        priority: 'MEDIUM',
+                        assignedTo: staff,
+                        assignedBy: manager
+                )
+                anotherOverdueTask.save(flush: true)
+            }
+        }
+    }
+
+    @Transactional
+    void createTestNotifications() {
+        if (!Notification.count()) {
+            def manager = Employee.findByFirstNameAndLastName('Bob', 'Johnson')
+            def staff = Employee.findByFirstNameAndLastName('Alice', 'Wilson')
+            def overdueTask = Task.findByTitle('Complete Monthly Report')
+
+            if (manager && staff && overdueTask) {
+                // Create a sample notification
+                // Format the date properly
+                def dateFormat = new SimpleDateFormat('dd/MM/yyyy')
+                def formattedDeadline = dateFormat.format(overdueTask.deadline)
+
+                def notification = new Notification(
+                        message: "Task '${overdueTask.title}' assigned to ${staff.fullName} is overdue (deadline was ${formattedDeadline}). Please take necessary action.",
+                        type: 'TASK_OVERDUE',
+                        recipient: manager,
+                        task: overdueTask,
+                        escalatedFrom: staff,
+                        dateCreated: new Date(),
+                        isRead: false
+                )
+                notification.save(flush: true)
+
+                log.info "Created test notification for manager"
             }
         }
     }
