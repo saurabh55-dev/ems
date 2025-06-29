@@ -37,6 +37,16 @@
                         </g:link>
                     </li>
                 </sec:ifAllGranted>
+
+            <!-- Notification navigation for ROLE_DIRECTOR and ROLE_MANAGER -->
+                <sec:ifAnyGranted roles="ROLE_DIRECTOR,ROLE_MANAGER">
+                    <li class="nav-item">
+                        <g:link controller="notification" action="index" class="nav-link position-relative">
+                            <i class="fas fa-bell"></i> Notifications
+                            <span id="notification-badge" class="badge badge-danger badge-pill position-absolute" style="top: 5px; right: 5px; font-size: 0.7rem; display: none;">0</span>
+                        </g:link>
+                    </li>
+                </sec:ifAnyGranted>
             </ul>
 
             <sec:ifLoggedIn>
@@ -65,5 +75,31 @@
 <!-- Bootstrap JavaScript for dropdown functionality -->
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Notification badge update script -->
+<sec:ifAnyGranted roles="ROLE_DIRECTOR,ROLE_MANAGER">
+    <script>
+        function updateNotificationBadge() {
+            fetch('${createLink(controller: 'notification', action: 'getUnreadCount')}')
+                .then(response => response.json())
+                .then(data => {
+                    const badge = document.getElementById('notification-badge');
+                    if (data.count > 0) {
+                        badge.textContent = data.count;
+                        badge.style.display = 'inline';
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                })
+                .catch(error => console.log('Error updating notification badge:', error));
+        }
+
+        // Update badge on page load and every 5 minutes
+        document.addEventListener('DOMContentLoaded', function() {
+            updateNotificationBadge();
+            setInterval(updateNotificationBadge, 300000); // 5 minutes
+        });
+    </script>
+</sec:ifAnyGranted>
 </body>
 </html>

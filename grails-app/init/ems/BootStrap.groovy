@@ -10,6 +10,7 @@ class BootStrap {
         createRoles()
         createBranch()
         createDefaultEmployees()
+        createSampleTasks()
     }
 
     @Transactional
@@ -35,6 +36,7 @@ class BootStrap {
             def adminRole = Role.findByAuthority('ROLE_ADMIN')
             def directorRole = Role.findByAuthority('ROLE_DIRECTOR')
             def managerRole = Role.findByAuthority('ROLE_MANAGER')
+            def staffRole = Role.findByAuthority('ROLE_STAFF')
             def branch = Branch.findByName('KTM')
 
             // Create admin
@@ -63,6 +65,66 @@ class BootStrap {
             manager.username = 'manager'
             manager.password = 'manager123'
             employeeManagerService.save(manager)
+
+            // Create staff
+            def staff = new Employee(
+                    firstName: 'Alice', lastName: 'Wilson', email: 'alice@gmail.com',
+                    phone: '4444444444', branch: branch, supervisor: manager, role: staffRole
+            )
+            staff.username = 'staff'
+            staff.password = 'staff123'
+            employeeManagerService.save(staff)
+        }
+    }
+
+    // Helper method to subtract days from date
+    private Date subtractDays(Date date, int days) {
+        Calendar cal = Calendar.getInstance()
+        cal.setTime(date)
+        cal.add(Calendar.DAY_OF_MONTH, -days)
+        return cal.getTime()
+    }
+
+    // Helper method to add days to date
+    private Date addDays(Date date, int days) {
+        Calendar cal = Calendar.getInstance()
+        cal.setTime(date)
+        cal.add(Calendar.DAY_OF_MONTH, days)
+        return cal.getTime()
+    }
+    @Transactional
+    void createSampleTasks() {
+        if (!Task.count()) {
+            def manager = Employee.findByFirstNameAndLastName('Bob', 'Johnson')
+            def staff = Employee.findByFirstNameAndLastName('Alice', 'Wilson')
+
+            if (manager && staff) {
+                // Create an overdue task for testing
+                def overdueTask = new Task(
+                        title: 'Complete Monthly Report',
+                        description: 'Prepare and submit the monthly performance report',
+                        dateCreated: subtractDays(new Date(), 10),
+                        deadline: subtractDays(new Date(), 2), // 2 days overdue
+                        status: 'IN_PROGRESS',
+                        priority: 'HIGH',
+                        assignedTo: staff,
+                        assignedBy: manager
+                )
+                overdueTask.save(flush: true)
+
+                // Create a current task
+                def currentTask = new Task(
+                        title: 'Review Client Proposals',
+                        description: 'Review and approve client proposals for next quarter',
+                        dateCreated: new Date(),
+                        deadline: addDays(new Date(), 7), // Due in 7 days
+                        status: 'ASSIGNED',
+                        priority: 'MEDIUM',
+                        assignedTo: staff,
+                        assignedBy: manager
+                )
+                currentTask.save(flush: true)
+            }
         }
     }
 

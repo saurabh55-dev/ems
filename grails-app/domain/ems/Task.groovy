@@ -19,4 +19,17 @@ class Task {
         assignedBy nullable: false
         assignedTo nullable: false
     }
+
+    static mapping = {
+        description type: 'text'
+        sort 'deadline'
+    }
+
+    boolean isOverdue() {
+        return deadline < new Date() && status != 'COMPLETED' && status != 'CANCELLED'
+    }
+
+    String toString() {
+        return title
+    }
 }
