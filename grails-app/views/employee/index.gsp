@@ -1,38 +1,54 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta name="layout" content="main" />
-        <g:set var="entityName" value="${message(code: 'employee.label', default: 'Employee')}" />
-        <title><g:message code="default.list.label" args="[entityName]" /></title>
-    </head>
-    <body>
-    <div id="content" role="main">
-        <div class="container">
-            <section class="row">
-                <a href="#list-employee" class="skip" tabindex="-1"><g:message code="default.link.skip.label" default="Skip to content&hellip;"/></a>
-                <div class="nav" role="navigation">
-                    <ul>
-                        <li><a class="home" href="${createLink(uri: '/')}"><g:message code="default.home.label"/></a></li>
-                        <li><g:link class="create" action="create"><g:message code="default.new.label" args="[entityName]" /></g:link></li>
-                    </ul>
-                </div>
-            </section>
-            <section class="row">
-                <div id="list-employee" class="col-12 content scaffold-list" role="main">
-                    <h1><g:message code="default.list.label" args="[entityName]" /></h1>
-                    <g:if test="${flash.message}">
-                        <div class="message" role="status">${flash.message}</div>
-                    </g:if>
-                    <f:table collection="${employeeList}" />
+<head>
+    <meta name="layout" content="main" />
+    <title>Employee List</title>
+</head>
+<body>
+<div class="container">
+    <h1>Employee List</h1>
 
-                    <g:if test="${employeeCount > params.int('max')}">
-                    <div class="pagination">
-                        <g:paginate total="${employeeCount ?: 0}" />
-                    </div>
-                    </g:if>
-                </div>
-            </section>
-        </div>
+    <g:if test="${flash.message}">
+        <div class="alert alert-info">${flash.message}</div>
+    </g:if>
+
+    <div class="mb-3">
+        <g:link class="btn btn-primary" action="create">Create Employee</g:link>
     </div>
-    </body>
+
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Branch</th>
+            <th>Role</th>
+            <th>Supervisor</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <g:each in="${employeeList}" var="employee">
+            <tr>
+                <td>${employee.firstName} ${employee.lastName}</td>
+                <td>${employee.email}</td>
+                <td>${employee.phone}</td>
+                <td>${employee.branch?.name}</td>
+                <td>${employee.role}</td>
+                <td>${employee.supervisor?.fullName ?: 'No Supervisor'}</td>
+                <td>
+                    <g:link class="btn btn-sm btn-info" action="show" id="${employee.id}">View</g:link>
+                    <g:link class="btn btn-sm btn-primary" action="edit" id="${employee.id}">Edit</g:link>
+                </td>
+            </tr>
+        </g:each>
+        </tbody>
+    </table>
+
+    <div class="pagination">
+        <g:paginate total="${employeeCount ?: 0}" />
+    </div>
+</div>
+</body>
 </html>

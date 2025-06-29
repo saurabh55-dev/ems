@@ -1,25 +1,22 @@
 package ems
 
-enum TaskStatus { PENDING, COMPLETED, ESCALATED }
-
 class Task {
     String title
     String description
+    String priority // IMMEDIATE, HIGH, MEDIUM, NORMAL
+    String status = 'ASSIGNED'
+    Date dateCreated
+    Date deadline
     Employee assignedTo
     Employee assignedBy
-    TaskStatus status = TaskStatus.PENDING
-    Date assignedDate = new Date()
-    Date deadline
-    boolean escalatedOnce = false
-    boolean escalatedTwice = false
 
     static constraints = {
-        title blank: false
-        description maxSize: 1000
+        title nullable: false, blank: false
+        description nullable: false, blank: false
+        priority nullable: false, inList: ['IMMEDIATE', 'HIGH', 'MEDIUM', 'NORMAL']
+        status nullable: false, inList: ['ASSIGNED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED']
         deadline nullable: false
-    }
-
-    String toString() {
-        "$title (${status})"
+        assignedBy nullable: false
+        assignedTo nullable: false
     }
 }

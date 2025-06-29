@@ -1,46 +1,90 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta name="layout" content="main" />
-        <g:set var="entityName" value="${message(code: 'employee.label', default: 'Employee')}" />
-        <title><g:message code="default.create.label" args="[entityName]" /></title>
-    </head>
-    <body>
-    <div id="content" role="main">
-        <div class="container">
-            <section class="row">
-                <a href="#create-employee" class="skip" tabindex="-1"><g:message code="default.link.skip.label" default="Skip to content&hellip;"/></a>
-                <div class="nav" role="navigation">
-                    <ul>
-                        <li><a class="home" href="${createLink(uri: '/')}"><g:message code="default.home.label"/></a></li>
-                        <li><g:link class="list" action="index"><g:message code="default.list.label" args="[entityName]" /></g:link></li>
-                    </ul>
-                </div>
-            </section>
-            <section class="row">
-                <div id="create-employee" class="col-12 content scaffold-create" role="main">
-                    <h1><g:message code="default.create.label" args="[entityName]" /></h1>
-                    <g:if test="${flash.message}">
-                    <div class="message" role="status">${flash.message}</div>
-                    </g:if>
-                    <g:hasErrors bean="${this.employee}">
-                    <ul class="errors" role="alert">
-                        <g:eachError bean="${this.employee}" var="error">
-                        <li <g:if test="${error in org.springframework.validation.FieldError}">data-field-id="${error.field}"</g:if>><g:message error="${error}"/></li>
-                        </g:eachError>
-                    </ul>
-                    </g:hasErrors>
-                    <g:form resource="${this.employee}" method="POST">
-                        <fieldset class="form">
-                            <f:all bean="employee"/>
-                        </fieldset>
-                        <fieldset class="buttons">
-                            <g:submitButton name="create" class="save" value="${message(code: 'default.button.create.label', default: 'Create')}" />
-                        </fieldset>
-                    </g:form>
-                </div>
-            </section>
+<head>
+    <meta name="layout" content="main" />
+    <title>Create Employee</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+<div class="container">
+    <h1>Create Employee</h1>
+
+    <g:if test="${flash.message}">
+        <div class="alert alert-info">${flash.message}</div>
+    </g:if>
+
+    <g:hasErrors bean="${employee}">
+        <div class="alert alert-danger">
+            <g:renderErrors bean="${employee}" as="list" />
         </div>
-    </div>
-    </body>
+    </g:hasErrors>
+
+    <g:form action="save" method="POST">
+        <div class="form-group">
+            <label>First Name</label>
+            <g:textField name="firstName" class="form-control" value="${employee?.firstName}"/>
+        </div>
+
+        <div class="form-group">
+            <label>Last Name</label>
+            <g:textField name="lastName" class="form-control" value="${employee?.lastName}"/>
+        </div>
+
+        <div class="form-group">
+            <label>Email</label>
+            <g:textField name="email" class="form-control" value="${employee?.email}"/>
+        </div>
+
+        <div class="form-group">
+            <label>Phone</label>
+            <g:textField name="phone" class="form-control" value="${employee?.phone}"/>
+        </div>
+
+        <div class="form-group">
+            <label>Username</label>
+            <g:textField name="username" class="form-control" value="${employee?.username}" required=""/>
+        </div>
+
+        <div class="form-group">
+            <label for="password">Password</label>
+            <g:passwordField name="password" id="password" class="form-control" required=""/>
+        </div>
+
+        <div class="form-group">
+            <label>Branch</label>
+            <g:select name="branch.id"
+                      from="${ems.Branch.list()}"
+                      optionKey="id"
+                      optionValue="name"
+                      class="form-control"/>
+        </div>
+
+        <div class="form-group">
+            <label for="role">Role</label>
+            <g:select name="role.id" from="${roles}"
+                      optionKey="id" optionValue="authority"
+                      class="form-control" id="roleSelect" required=""/>
+        </div>
+
+        <div class="form-group">
+            <label>Supervisor</label>
+            <g:select name="supervisor.id"
+                      from="${supervisorList}"
+                      optionKey="id"
+                      optionValue="${{it.firstName + ' ' + it.lastName + ' (' + it.role?.authority + ')'}}"
+                      noSelection="['': 'Select Supervisor (Optional)']"
+                      class="form-control"/>
+        </div>
+
+        <div class="form-actions">
+            <g:submitButton name="create" class="btn btn-primary" value="Create"/>
+            <g:link class="btn btn-secondary" action="index">Cancel</g:link>
+        </div>
+    </g:form>
+</div>
+
+<script>
+    $(document).ready(function() {});
+</script>
+</body>
 </html>

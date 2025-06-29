@@ -42,6 +42,11 @@ configurations {
 
 dependencies {
     profile "org.grails.profiles:web"
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.security:spring-security-config'
+    implementation 'org.springframework.security:spring-security-web'
+    implementation 'org.grails.plugins:spring-security-core:5.1.0'  // Use the latest version compatible with your Grails version
+
     implementation "org.grails:grails-core"
     implementation "org.grails:grails-logging"
     implementation "org.grails:grails-plugin-databinding"

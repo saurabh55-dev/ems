@@ -1,22 +1,39 @@
 package ems
 
 class Employee {
-
-    String fullName
-    String position  // "Director", "Manager", "Staff"
+    String firstName
+    String lastName
+    String email
+    String phone
     Branch branch
+    String password
+    String username
+    Role role
     Employee supervisor
 
-    static belongsTo = [branch: Branch]
-    static hasMany = [subordinates: Employee]
+    static transients = ['password', 'username']
+
+    static belongsTo = [branch: Branch, role: Role]
 
     static constraints = {
-        fullName blank: false
-        position inList: ['Director', 'Manager', 'Staff']
+        firstName blank: false
+        lastName blank: false
+        email email: true, blank: false, unique: true
+        phone blank: false
+        branch nullable: false
         supervisor nullable: true
+        role nullable: false
     }
 
-    String toString() {
-        "$fullName ($position)"
+    static mapping = {
+        sort firstName: "asc"
+    }
+
+    String toString(){
+        getFullName() + "(" + role + ")"
+    }
+
+    String getFullName() {
+        "${firstName} ${lastName}"
     }
 }

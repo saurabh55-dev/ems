@@ -15,4 +15,8 @@ interface EmployeeService {
 
     Employee save(Employee employee)
 
+    List<Employee> findByEmail(String email)
+
+//    List<Employee> findAllByRole_AuthorityInList(List<String> authorities)
+
 }

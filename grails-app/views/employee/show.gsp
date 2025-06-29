@@ -1,39 +1,58 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta name="layout" content="main" />
-        <g:set var="entityName" value="${message(code: 'employee.label', default: 'Employee')}" />
-        <title><g:message code="default.show.label" args="[entityName]" /></title>
-    </head>
-    <body>
-    <div id="content" role="main">
-        <div class="container">
-            <section class="row">
-                <a href="#show-employee" class="skip" tabindex="-1"><g:message code="default.link.skip.label" default="Skip to content&hellip;"/></a>
-                <div class="nav" role="navigation">
-                    <ul>
-                        <li><a class="home" href="${createLink(uri: '/')}"><g:message code="default.home.label"/></a></li>
-                        <li><g:link class="list" action="index"><g:message code="default.list.label" args="[entityName]" /></g:link></li>
-                        <li><g:link class="create" action="create"><g:message code="default.new.label" args="[entityName]" /></g:link></li>
-                    </ul>
-                </div>
-            </section>
-            <section class="row">
-                <div id="show-employee" class="col-12 content scaffold-show" role="main">
-                    <h1><g:message code="default.show.label" args="[entityName]" /></h1>
-                    <g:if test="${flash.message}">
-                    <div class="message" role="status">${flash.message}</div>
-                    </g:if>
-                    <f:display bean="employee" />
-                    <g:form resource="${this.employee}" method="DELETE">
-                        <fieldset class="buttons">
-                            <g:link class="edit" action="edit" resource="${this.employee}"><g:message code="default.button.edit.label" default="Edit" /></g:link>
-                            <input class="delete" type="submit" value="${message(code: 'default.button.delete.label', default: 'Delete')}" onclick="return confirm('${message(code: 'default.button.delete.confirm.message', default: 'Are you sure?')}');" />
-                        </fieldset>
-                    </g:form>
-                </div>
-            </section>
+<head>
+    <meta name="layout" content="main" />
+    <title>Show Employee</title>
+</head>
+<body>
+<div class="container">
+    <h1>Employee Details</h1>
+
+    <g:if test="${flash.message}">
+        <div class="alert alert-info">${flash.message}</div>
+    </g:if>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="row mb-2">
+                <div class="col-2">Name</div>
+                <div class="col-10">${employee.firstName} ${employee.lastName}</div>
+            </div>
+
+            <div class="row mb-2">
+                <div class="col-2">Email</div>
+                <div class="col-10">${employee.email}</div>
+            </div>
+
+            <div class="row mb-2">
+                <div class="col-2">Phone</div>
+                <div class="col-10">${employee.phone}</div>
+            </div>
+
+            <div class="row mb-2">
+                <div class="col-2">Branch</div>
+                <div class="col-10">${employee.branch?.name}</div>
+            </div>
+
+            <div class="row mb-2">
+                <div class="col-2">Role</div>
+                <div class="col-10">${employee.role}</div>
+            </div>
+
+            <div class="row mb-2">
+                <div class="col-2">Supervisor</div>
+                <div class="col-10">${employee.supervisor?.fullName ?: 'No Supervisor'}</div>
+            </div>
         </div>
     </div>
-    </body>
+
+    <div class="mt-3">
+        <g:form resource="${employee}" method="DELETE">
+            <g:link class="btn btn-primary" action="edit" resource="${employee}">Edit</g:link>
+            <input class="btn btn-danger" type="submit" value="Delete" onclick="return confirm('${message(code: 'default.button.delete.confirm.message', default: 'Are you sure?')}');" />
+            <g:link class="btn btn-secondary" action="index">Back to List</g:link>
+        </g:form>
+    </div>
+</div>
+</body>
 </html>
